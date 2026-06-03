@@ -130,6 +130,15 @@ async def reject_friend_request(request_id):
         return handle_response(resp)
 
 
+async def remove_friend(friend_id):
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.delete(
+            f"{API_BASE}/friends/{friend_id}",
+            headers=get_headers(),
+        )
+        return handle_response(resp)
+
+
 async def get_friends():
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.get(f"{API_BASE}/friends/list", headers=get_headers())

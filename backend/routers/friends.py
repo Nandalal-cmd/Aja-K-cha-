@@ -10,6 +10,7 @@ from backend.services.friend_service import (
     reject_request,
     get_friends,
     get_pending_requests,
+    remove_friend,
 )
 from backend.utils.auth import get_current_user
 from backend.models import User
@@ -75,6 +76,21 @@ async def friends_list(
 ):
     friends = await get_friends(user.id, db)
     return friends
+
+
+@router.delete("/{friend_id}")
+async def unfriend(
+    friend_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if friend_id == user.id:
+        raise HTTPException(status_code=400, detail="Cannot unfriend yourself")
+
+    removed = await remove_friend(user.id, friend_id, db)
+    if not removed:
+        raise HTTPException(status_code=404, detail="Friend not found")
+    return {"message": "Friend removed"}
 
 
 @router.get("/requests")

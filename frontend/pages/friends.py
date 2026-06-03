@@ -7,6 +7,7 @@ from frontend.utils.api_client import (
     reject_friend_request,
     get_friends,
     get_pending_requests,
+    remove_friend,
 )
 from frontend.components.friend_item import show_friend_item
 
@@ -146,15 +147,26 @@ def show():
             friends = []
 
         if friends:
+            unfriend_label = "🗑️ Unfriend" if lang == "en" else "🗑️ साथी हटाउनुहोस्"
             for f in friends:
-                s = f.get("streak") or {}
-                streak = s.get("current_streak", 0)
-                show_friend_item(
-                    f.get("display_name", "Unknown"),
-                    f.get("username", ""),
-                    streak=streak,
-                    lang=lang,
-                )
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    s = f.get("streak") or {}
+                    streak = s.get("current_streak", 0)
+                    show_friend_item(
+                        f.get("display_name", "Unknown"),
+                        f.get("username", ""),
+                        streak=streak,
+                        lang=lang,
+                    )
+                with col2:
+                    if st.button(unfriend_label, key=f"unfriend_{f['id']}"):
+                        try:
+                            r = asyncio.run(remove_friend(f["id"]))
+                            if r.status_code == 200:
+                                st.rerun()
+                        except Exception:
+                            pass
         else:
             no_friends_title = "No friends yet!" if lang == "en" else "कुनै साथी छैन!"
             no_friends_msg = "Search for your buddies and add them to see their posts!" if lang == "en" else "तपाईंका साथीहरू खोज्नुहोस् र तिनीहरूका पोस्ट हेर्न थप्नुहोस्!"

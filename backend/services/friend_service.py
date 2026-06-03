@@ -119,6 +119,31 @@ async def get_friends(user_id: int, db: AsyncSession) -> list:
     return friends.scalars().all()
 
 
+async def remove_friend(user_id: int, friend_id: int, db: AsyncSession) -> bool:
+    result = await db.execute(
+        select(FriendRequest).where(
+            or_(
+                and_(
+                    FriendRequest.from_user_id == user_id,
+                    FriendRequest.to_user_id == friend_id,
+                ),
+                and_(
+                    FriendRequest.from_user_id == friend_id,
+                    FriendRequest.to_user_id == user_id,
+                ),
+            ),
+            FriendRequest.status == FriendStatus.ACCEPTED,
+        )
+    )
+    req = result.scalar_one_or_none()
+    if not req:
+        return False
+
+    await db.delete(req)
+    await db.commit()
+    return True
+
+
 async def get_pending_requests(user_id: int, db: AsyncSession) -> list:
     result = await db.execute(
         select(FriendRequest)
