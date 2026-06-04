@@ -26,15 +26,17 @@ def show():
         st.session_state.feed_has_more = True
 
     if st.session_state.feed_offset == 0:
-        try:
-            resp = asyncio.run(get_feed(skip=0, limit=PAGE_SIZE))
-            if resp.status_code == 200:
-                st.session_state.feed_posts = resp.json()
-                st.session_state.feed_has_more = len(resp.json()) == PAGE_SIZE
-                st.session_state.feed_offset = PAGE_SIZE
-        except Exception:
-            st.session_state.feed_posts = []
-            st.session_state.feed_has_more = False
+        loading_text = "Loading feed..." if lang == "en" else "फिड लोड हुँदै..."
+        with st.spinner(loading_text):
+            try:
+                resp = asyncio.run(get_feed(skip=0, limit=PAGE_SIZE))
+                if resp.status_code == 200:
+                    st.session_state.feed_posts = resp.json()
+                    st.session_state.feed_has_more = len(resp.json()) == PAGE_SIZE
+                    st.session_state.feed_offset = PAGE_SIZE
+            except Exception:
+                st.session_state.feed_posts = []
+                st.session_state.feed_has_more = False
 
     no_title = "No posts yet!" if lang == "en" else "कुनै पोस्ट छैन!"
     no_msg = "Add friends or complete today's challenge to see posts here." if lang == "en" else "यहाँ पोस्ट हेर्न साथीहरू थप्नुहोस् वा आजको च्यालेन्ज पूरा गर्नुहोस्।"
@@ -56,16 +58,18 @@ def show():
 
     if st.session_state.feed_has_more:
         load_more = "Load More" if lang == "en" else "थप लोड गर्नुहोस्"
+        loading_text = "Loading more posts..." if lang == "en" else "थप पोस्ट लोड हुँदै..."
         if st.button(load_more, use_container_width=True, key="feed_load_more"):
-            try:
-                resp = asyncio.run(
-                    get_feed(skip=st.session_state.feed_offset, limit=PAGE_SIZE)
-                )
-                if resp.status_code == 200:
-                    new_posts = resp.json()
-                    st.session_state.feed_posts.extend(new_posts)
-                    st.session_state.feed_offset += len(new_posts)
-                    st.session_state.feed_has_more = len(new_posts) == PAGE_SIZE
-                    st.rerun()
-            except Exception:
-                pass
+            with st.spinner(loading_text):
+                try:
+                    resp = asyncio.run(
+                        get_feed(skip=st.session_state.feed_offset, limit=PAGE_SIZE)
+                    )
+                    if resp.status_code == 200:
+                        new_posts = resp.json()
+                        st.session_state.feed_posts.extend(new_posts)
+                        st.session_state.feed_offset += len(new_posts)
+                        st.session_state.feed_has_more = len(new_posts) == PAGE_SIZE
+                        st.rerun()
+                except Exception:
+                    pass
