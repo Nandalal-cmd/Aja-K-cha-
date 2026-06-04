@@ -4,7 +4,7 @@ from typing import Optional
 
 from backend.database import get_db
 from backend.schemas import PostCreate, PostOut, ReactionOut
-from backend.services.post_service import create_post, get_feed, add_reaction, get_user_posts
+from backend.services.post_service import create_post, get_feed, add_reaction, get_user_posts, delete_post
 from backend.services.challenge_service import get_today_challenge, get_challenge_by_id
 from backend.services.notification_service import create_notification
 from backend.utils.auth import get_current_user
@@ -51,6 +51,18 @@ async def my_posts(
 ):
     posts = await get_user_posts(user.id, db, skip=skip, limit=limit)
     return posts
+
+
+@router.delete("/{post_id}")
+async def remove_post(
+    post_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    deleted = await delete_post(post_id, user.id, db)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Post not found or not yours")
+    return {"message": "Post deleted"}
 
 
 @router.post("/{post_id}/react", response_model=ReactionOut)

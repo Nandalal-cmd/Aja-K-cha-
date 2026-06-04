@@ -174,6 +174,20 @@ async def get_post_by_id(post_id: int, db: AsyncSession):
     return result.scalar_one_or_none()
 
 
+async def delete_post(post_id: int, user_id: int, db: AsyncSession) -> bool:
+    result = await db.execute(
+        select(Post).where(Post.id == post_id, Post.user_id == user_id)
+    )
+    post = result.scalar_one_or_none()
+    if not post:
+        return False
+
+    delete_file(post.image_path)
+    await db.delete(post)
+    await db.commit()
+    return True
+
+
 async def delete_expired_posts(db: AsyncSession):
     now = datetime.datetime.utcnow()
     result = await db.execute(

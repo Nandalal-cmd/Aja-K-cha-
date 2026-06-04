@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from frontend.components.avatar import show_avatar
-from frontend.utils.api_client import react_to_post
+from frontend.utils.api_client import react_to_post, delete_post
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
 
@@ -17,7 +17,7 @@ def _is_video(path):
     return Path(path).suffix.lower() in VIDEO_EXTENSIONS
 
 
-def show_post_card(post, lang="en"):
+def show_post_card(post, lang="en", current_user_id=None):
     user_data = post.get("user", {})
     challenge_data = post.get("challenge", {})
     reactions = post.get("reactions", [])
@@ -34,7 +34,7 @@ def show_post_card(post, lang="en"):
 
     st.markdown("<div class='post-card'>", unsafe_allow_html=True)
 
-    col_av, col_name = st.columns([0.1, 0.9])
+    col_av, col_name, col_del = st.columns([0.1, 0.7, 0.2])
     with col_av:
         show_avatar(display_name, user_data.get("avatar_url"), size=40)
     with col_name:
@@ -43,6 +43,16 @@ def show_post_card(post, lang="en"):
             f"<p style='font-size:0.8rem;color:rgba(0,0,0,0.4);margin:0;'>@{username}</p>",
             unsafe_allow_html=True,
         )
+    with col_del:
+        if current_user_id and post.get("user_id") == current_user_id:
+            delete_label = "🗑️" if lang == "en" else "🗑️"
+            if st.button(delete_label, key=f"del_{post['id']}", help="Delete post"):
+                try:
+                    r = asyncio.run(delete_post(post["id"]))
+                    if r.status_code == 200:
+                        st.rerun()
+                except Exception:
+                    pass
 
     if image_path:
         media_url = get_image_url(image_path)

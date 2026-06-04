@@ -83,6 +83,15 @@ async def get_my_posts(skip=0, limit=20):
         return handle_response(resp)
 
 
+async def delete_post(post_id):
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.delete(
+            f"{API_BASE}/posts/{post_id}",
+            headers=get_headers(),
+        )
+        return handle_response(resp)
+
+
 async def react_to_post(post_id, emoji):
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(

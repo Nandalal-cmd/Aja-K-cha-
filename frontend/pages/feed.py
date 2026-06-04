@@ -50,8 +50,9 @@ def show():
         )
         return
 
+    current_user_id = st.session_state.user.get("id") if st.session_state.get("user") else None
     for post in st.session_state.feed_posts:
-        show_post_card(post, lang)
+        show_post_card(post, lang, current_user_id=current_user_id)
 
     if st.session_state.feed_has_more:
         load_more = "Load More" if lang == "en" else "थप लोड गर्नुहोस्"
