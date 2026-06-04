@@ -8,17 +8,24 @@ st.set_page_config(
 )
 
 
-CUSTOM_CSS = """
+def get_custom_css(dark_mode=False):
+    bg = ("background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);"
+          if dark_mode else
+          "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);")
+    sidebar_bg = ("background: linear-gradient(180deg, #0d0d1a 0%, #1a1a3e 100%);"
+                  if dark_mode else
+                  "background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);")
+    return f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
 
-* {
+* {{
     font-family: 'Poppins', sans-serif;
-}
+}}
 
-.stApp {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
+.stApp {{
+    {bg}
+}}
 
 h1, h2, h3, .big-title {
     font-family: 'Baloo 2', sans-serif !important;
@@ -167,9 +174,9 @@ h1, h2, h3, .big-title {
 }
 
 div[data-testid="stSidebarNav"] {display: none;}
-section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-}
+section[data-testid="stSidebar"] {{
+    {sidebar_bg}
+}}
 
 /* Fix form inputs */
 .stTextInput input, .stTextInput div, .stTextInput {
@@ -210,12 +217,12 @@ section[data-testid="stSidebar"] {
     border-radius: 12px !important;
 }
 
-.reaction-bar {
+.reaction-bar {{
     display: flex;
     gap: 8px;
     padding: 8px 0;
     flex-wrap: wrap;
-}
+}}
 </style>
 """
 
@@ -229,6 +236,8 @@ def init_session_state():
         st.session_state.user = None
     if "language" not in st.session_state:
         st.session_state.language = "ne"
+    if "dark_mode" not in st.session_state:
+        st.session_state.dark_mode = False
 
 
 def sidebar_nav():
@@ -298,6 +307,15 @@ def sidebar_nav():
                 ):
                     st.session_state.language = "en"
                     st.rerun()
+
+            st.markdown("<hr style='opacity:0.2;margin:20px 0;'>", unsafe_allow_html=True)
+
+            dark_label = "🌙 Dark Mode" if lang == "en" else "🌙 डार्क मोड"
+            light_label = "☀️ Light Mode" if lang == "en" else "☀️ लाइट मोड"
+            toggle_label = dark_label if not st.session_state.dark_mode else light_label
+            if st.button(toggle_label, use_container_width=True):
+                st.session_state.dark_mode = not st.session_state.dark_mode
+                st.rerun()
 
             st.markdown("<hr style='opacity:0.2;margin:20px 0;'>", unsafe_allow_html=True)
 
@@ -374,7 +392,7 @@ def sidebar_nav():
 
 def main():
     init_session_state()
-    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+    st.markdown(get_custom_css(st.session_state.dark_mode), unsafe_allow_html=True)
     sidebar_nav()
 
     page = st.session_state.page
