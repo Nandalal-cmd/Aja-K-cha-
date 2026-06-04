@@ -1,6 +1,6 @@
 import streamlit as st
 import asyncio
-from frontend.utils.api_client import get_notifications, mark_notification_read
+from frontend.utils.api_client import get_notifications, mark_notification_read, mark_all_notifications_read
 
 
 def show():
@@ -19,6 +19,16 @@ def show():
             notifications = []
     except Exception:
         notifications = []
+
+    has_unread = any(not n.get("is_read") for n in notifications)
+    if has_unread:
+        mark_all_label = "✅ Mark All Read" if lang == "en" else "✅ सबै पढिएको चिन्ह"
+        if st.button(mark_all_label, use_container_width=True):
+            try:
+                asyncio.run(mark_all_notifications_read())
+                st.rerun()
+            except Exception:
+                pass
 
     no_notifs = "No notifications yet" if lang == "en" else "कुनै सूचना छैन"
     if not notifications:
