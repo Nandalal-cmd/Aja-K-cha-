@@ -34,6 +34,11 @@ class UserOut(BaseModel):
         from_attributes = True
 
 
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=4, max_length=100)
+
+
 class UserUpdate(BaseModel):
     display_name: Optional[str] = Field(None, min_length=1, max_length=100)
     bio: Optional[str] = Field(None, max_length=200)

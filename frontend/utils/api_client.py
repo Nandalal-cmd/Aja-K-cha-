@@ -208,6 +208,16 @@ async def mark_all_notifications_read():
         return handle_response(resp)
 
 
+async def change_password(current_password, new_password):
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            f"{API_BASE}/auth/change-password",
+            json={"current_password": current_password, "new_password": new_password},
+            headers=get_headers(),
+        )
+        return handle_response(resp)
+
+
 async def update_profile(data: dict):
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.put(

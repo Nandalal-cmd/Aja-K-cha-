@@ -3,8 +3,9 @@ from sqlalchemy import select, or_
 from fastapi import HTTPException, status
 
 from backend.models import User, Streak
-from backend.schemas import UserRegister, UserLogin, UserUpdate
+from backend.schemas import UserRegister, UserLogin, UserUpdate, PasswordChange
 from backend.utils.auth import hash_password, verify_password, create_token
+from backend.schemas import PasswordChange
 
 
 async def register_user(data: UserRegister, db: AsyncSession):
@@ -56,3 +57,11 @@ async def update_user(user: User, data: UserUpdate, db: AsyncSession):
     await db.commit()
     await db.refresh(user)
     return user
+
+
+async def change_password(user: User, data: PasswordChange, db: AsyncSession):
+    if not verify_password(data.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    user.password_hash = hash_password(data.new_password)
+    await db.commit()
+    return {"message": "Password changed successfully"}

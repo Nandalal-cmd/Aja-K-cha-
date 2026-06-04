@@ -1,6 +1,6 @@
 import streamlit as st
 import asyncio
-from frontend.utils.api_client import get_me, get_my_posts, get_friends, update_profile, upload_avatar
+from frontend.utils.api_client import get_me, get_my_posts, get_friends, update_profile, upload_avatar, change_password
 from frontend.components.avatar import show_avatar
 
 
@@ -158,6 +158,31 @@ def show():
             f"</div>",
             unsafe_allow_html=True,
         )
+
+    st.markdown("<div style='margin:20px 0;'></div>", unsafe_allow_html=True)
+
+    with st.expander("🔑 Change Password" if lang == "en" else "🔑 पासवर्ड परिवर्तन"):
+        cur_label = "Current Password" if lang == "en" else "हालको पासवर्ड"
+        new_label = "New Password" if lang == "en" else "नयाँ पासवर्ड"
+        cur_pw = st.text_input(cur_label, type="password", key="change_cur_pw")
+        new_pw = st.text_input(new_label, type="password", key="change_new_pw")
+        change_btn = "Change Password" if lang == "en" else "पासवर्ड परिवर्तन"
+        if st.button(change_btn, key="change_pw_btn"):
+            if not cur_pw or not new_pw:
+                st.warning("Please fill both fields" if lang == "en" else "कृपया दुवै फिल्ड भर्नुहोस्")
+            elif len(new_pw) < 4:
+                pw_short = "New password must be at least 4 characters" if lang == "en" else "नयाँ पासवर्ड कम्तीमा ४ अक्षरको हुनुपर्छ"
+                st.warning(pw_short)
+            else:
+                try:
+                    r = asyncio.run(change_password(cur_pw, new_pw))
+                    if r.status_code == 200:
+                        st.success("Password changed! 🎉" if lang == "en" else "पासवर्ड परिवर्तन भयो! 🎉")
+                    else:
+                        err = r.json().get("detail", "Failed")
+                        st.error(f"❌ {err}")
+                except Exception as e:
+                    st.error(f"❌ Error: {e}")
 
     st.markdown("<div style='margin:20px 0;'></div>", unsafe_allow_html=True)
 

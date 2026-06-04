@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pathlib import Path
 
 from backend.database import get_db
-from backend.schemas import UserRegister, UserLogin, UserUpdate, UserOut, TokenResponse, UserProfile
-from backend.services.auth_service import register_user, login_user, update_user
+from backend.schemas import UserRegister, UserLogin, UserUpdate, PasswordChange, UserOut, TokenResponse, UserProfile
+from backend.services.auth_service import register_user, login_user, update_user, change_password
 from backend.utils.auth import get_current_user
 from backend.utils.helpers import save_avatar, delete_file
 from backend.utils.config import UPLOAD_DIR
@@ -64,6 +64,15 @@ async def update_me(
         friend_count=len(friends),
         post_count=len(posts),
     )
+
+
+@router.post("/change-password")
+async def change_user_password(
+    data: PasswordChange,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await change_password(user, data, db)
 
 
 @router.post("/avatar", response_model=UserProfile)
